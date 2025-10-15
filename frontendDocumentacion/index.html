@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Social Media Posts</title>
+<style>
+  :root{
+    --bg:#f5f8fb;
+    --card:#ffffff;
+    --primary:#5b8def;
+    --accent:#8fd3ff;
+    --muted:#6b7280;
+    --shadow: 0 6px 18px rgba(43,54,76,0.08);
+    --radius:12px;
+    --glass: rgba(255,255,255,0.6);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg), #eef6ff 60%);
+    color:#0b1220;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .app {
+    width:100%;
+    max-width:920px;
+    min-height:560px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,255,0.9));
+    border-radius:18px;
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 1fr 540px;
+  }
+
+  /* Left panel - illustration / info */
+  .panel {
+    background: linear-gradient(135deg, rgba(91,141,239,0.06), rgba(143,211,255,0.04));
+    padding:36px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .brand {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .logo {
+    width:56px;
+    height:56px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    color:white;
+    font-weight:700;
+    font-size:18px;
+    box-shadow:0 6px 14px rgba(91,141,239,0.18);
+  }
+  h1{
+    margin:0;
+    font-size:20px;
+    color: #08306b;
+  }
+  p.lead{
+    margin:0;
+    color:var(--muted);
+    max-width:260px;
+    line-height:1.45;
+  }
+
+  /* Right panel - content */
+  .content {
+    padding:28px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .card {
+    width:100%;
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:20px;
+  }
+
+  /* LOGIN */
+  form.login {
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-width:420px;
+    width:100%;
+  }
+  label{
+    font-size:13px;
+    color:#334155;
+  }
+  input[type="text"], input[type="password"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #e6eefc;
+    background:linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,250,255,0.8));
+    outline:none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    font-size:15px;
+  }
+  input:focus{
+    box-shadow: 0 6px 18px rgba(91,141,239,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    border-color:var(--primary);
+  }
+  button.primary {
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    background:linear-gradient(90deg,var(--primary),#4da1ff);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow: 0 8px 20px rgba(91,141,239,0.14);
+  }
+  .muted {
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  /* FEED */
+  .feed-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    gap:12px;
+  }
+  .username-badge{
+    font-weight:600;
+    color:#0f1724;
+  }
+  .logout {
+    background:transparent;
+    border:1px solid #e6eefc;
+    padding:8px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13px;
+  }
+
+  .new-post {
+    margin-bottom:18px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  textarea#postInput {
+    flex:1;
+    min-height:78px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ecf3ff;
+    resize:vertical;
+    font-size:15px;
+    outline:none;
+  }
+  .btn-post {
+    align-self:flex-end;
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    background:linear-gradient(90deg,#34c77b,#2ea36a);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .posts {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    max-height:320px;
+    overflow:auto;
+    padding-right:6px;
+  }
+  .post-card {
+    background:linear-gradient(180deg, rgba(255,255,255,1), rgba(250,251,255,1));
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #f0f4ff;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.03);
+  }
+  .post-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .post-text{
+    font-size:15px;
+    color:#0b1220;
+    white-space:pre-wrap;
+  }
+
+  /* responsive */
+  @media (max-width:880px){
+    .app{grid-template-columns:1fr; padding:18px;}
+    .panel{display:none}
+    .content{padding:18px}
+  }
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-labelledby="appTitle">
+    <!-- Left decorative panel -->
+    <aside class="panel" aria-hidden="true">
+      <div class="brand">
+        <div class="logo">SM</div>
+        <div>
+          <h1 id="appTitle">Social Media Posts</h1>
+          <p class="lead">Crea Posts y Comparte tus Ideas!</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right content area -->
+    <main class="content" id="mainContent">
+      <!-- LOGIN CARD -->
+      <section id="loginScreen" class="card" aria-labelledby="loginTitle">
+        <h2 id="loginTitle" style="margin-top:0">Iniciar sesión</h2>
+        <form class="login" id="loginForm" onsubmit="return handleLogin(event)">
+          <div>
+            <label for="username">Usuario</label>
+            <input id="username" name="username" type="text" autocomplete="username" placeholder="Tu nombre o usuario" required />
+          </div>
+          <div>
+            <label for="password">Contraseña</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Contraseña" required />
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;justify-content:flex-end">
+            <span class="muted" aria-hidden="true">Ingresa tu usuario y contraseña</span>
+            <button class="primary" type="submit">Login</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- FEED CARD (hidden initially) -->
+      <section id="feedScreen" class="card" style="display:none" aria-labelledby="feedTitle">
+        <div class="feed-header">
+          <div>
+            <div style="font-size:12px;color:var(--muted)">Conectado como</div>
+            <div class="username-badge" id="currentUser">Usuario</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="logout" id="logoutBtn" title="Cerrar sesión">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <div class="new-post" aria-label="Crear nuevo post">
+          <textarea id="postInput" placeholder="Escribe tu post..." aria-label="Contenido del post"></textarea>
+          <div style="display:flex;flex-direction:column;justify-content:flex-end">
+            <button class="btn-post" id="publishBtn">Publicar</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px;color:var(--muted);font-size:13px">Feed</div>
+        <div class="posts" id="postsContainer" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  // Utilidades de almacenamiento
+  const STORAGE_USER = "smp_username_v1";
+  const STORAGE_POSTS = "smp_posts_v1";
+
+  // Formas y elementos
+  const loginScreen = document.getElementById("loginScreen");
+  const feedScreen  = document.getElementById("feedScreen");
+  const loginForm   = document.getElementById("loginForm");
+  const usernameInp = document.getElementById("username");
+  const passwordInp = document.getElementById("password");
+  const currentUser = document.getElementById("currentUser");
+  const logoutBtn   = document.getElementById("logoutBtn");
+  const publishBtn  = document.getElementById("publishBtn");
+  const postInput   = document.getElementById("postInput");
+  const postsContainer = document.getElementById("postsContainer");
+
+  // Inicializar vista según storage
+  document.addEventListener("DOMContentLoaded", () => {
+    const user = localStorage.getItem(STORAGE_USER);
+    if (user) {
+      showFeed(user);
+    } else {
+      showLogin();
+    }
+    renderPosts();
+  });
+
+  // Manejar login
+  function handleLogin(e){
+    e.preventDefault();
+    const user = usernameInp.value.trim();
+    const pass = passwordInp.value.trim();
+    if (!user || !pass) {
+      alert("Por favor completa usuario y contraseña.");
+      return;
+    }
+    // Demo: no autenticamos, solo guardamos nombre.
+    localStorage.setItem(STORAGE_USER, user);
+    usernameInp.value = "";
+    passwordInp.value = "";
+    showFeed(user);
+  }
+
+  // Mostrar pantallas
+  function showFeed(user){
+    loginScreen.style.display = "none";
+    feedScreen.style.display = "block";
+    currentUser.textContent = user;
+    postInput.focus();
+  }
+  function showLogin(){
+    loginScreen.style.display = "block";
+    feedScreen.style.display = "none";
+    usernameInp.focus();
+  }
+
+  // Manejar publish
+  publishBtn.addEventListener("click", () => {
+    const content = postInput.value.trim();
+    const user = localStorage.getItem(STORAGE_USER) || "Anónimo";
+    if (!content) {
+      // UX ligero: shake animation could be added; simple alert here
+      alert("Escribe algo antes de publicar.");
+      postInput.focus();
+      return;
+    }
+    const post = {
+      id: Date.now(),
+      user,
+      content,
+      createdAt: new Date().toISOString()
+    };
+    savePost(post);
+    postInput.value = "";
+    renderPosts();
+  });
+
+  // Guardar y cargar posts
+  function loadPosts(){
+    try {
+      const raw = localStorage.getItem(STORAGE_POSTS);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      console.error("Error leyendo posts:", err);
+      return [];
+    }
+  }
+  function savePost(post){
+    const posts = loadPosts();
+    // añadir al inicio
+    posts.unshift(post);
+    localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts));
+  }
+
+  // Render posts
+  function renderPosts(){
+    const posts = loadPosts();
+    postsContainer.innerHTML = "";
+    if (posts.length === 0) {
+      postsContainer.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:8px">No hay posts aún. Sé el primero en publicar.</div>`;
+      return;
+    }
+    for (const p of posts) {
+      const el = document.createElement("article");
+      el.className = "post-card";
+      el.innerHTML = `
+        <div class="post-meta">
+          <div><strong>${escapeHtml(p.user)}</strong></div>
+          <div>${formatDate(p.createdAt)}</div>
+        </div>
+        <div class="post-text">${escapeHtml(p.content)}</div>
+      `;
+      postsContainer.appendChild(el);
+    }
+  }
+
+  // Logout
+  logoutBtn.addEventListener("click", () => {
+    // opcional: conservar posts pero borrar user
+    localStorage.removeItem(STORAGE_USER);
+    showLogin();
+  });
+
+  // Helpers
+  function formatDate(iso){
+    try {
+      const d = new Date(iso);
+      // ejemplo: 6 oct 2025, 14:30
+      const opts = { day: "numeric", month: "short", year: "numeric", hour:"2-digit", minute:"2-digit" };
+      return d.toLocaleString(undefined, opts);
+    } catch { return iso; }
+  }
+  // Simple escape para evitar inyección en demo
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  // Buena práctica: permitir Enter+Ctrl para publicar
+  postInput.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      publishBtn.click();
+    }
+  });
+</script>
+</body>
+</html>
