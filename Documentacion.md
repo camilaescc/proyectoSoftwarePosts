@@ -77,14 +77,14 @@ El desarrollo de **Social Media Posts** permitió reforzar conceptos clave sobre
 ## Wireframes 
 
 ### Pantalla de Login
-imagenes/login.png
+![Pantalla de login](imagenes/login.png)
 
 ### Pantalla de Posts
-imagenes/posts.png
+![Pantalla de login](imagenes/posts.png)
 
 ---
 
 ## Diagrama de base de datos
-imagenes/db_model.png
+![Pantalla de login](imagenes/dbModel.png)
 
 ---
