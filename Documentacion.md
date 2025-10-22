@@ -84,6 +84,11 @@ El desarrollo de **Social Media Posts** permitió reforzar conceptos clave sobre
 
 ---
 
+### Endpoints
+![Pantalla de login](endpoints/posts.png)
+
+---
+
 ## Diagrama de base de datos
 ![Pantalla de login](imagenes/dbModel.png)
 
