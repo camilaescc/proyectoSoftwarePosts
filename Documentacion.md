@@ -85,7 +85,7 @@ El desarrollo de **Social Media Posts** permitió reforzar conceptos clave sobre
 ---
 
 ### Endpoints
-![Pantalla de login](endpoints/posts.png)
+![Pantalla de login](imagenes/endpoints.png)
 
 ---
 
