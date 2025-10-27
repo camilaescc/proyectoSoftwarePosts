@@ -3,165 +3,75 @@
 // ==========================================
 const express = require("express");
 const mysql = require("mysql2");
-const bcrypt = require("bcryptjs"); // bcryptjs funciona bien en Windows
-const swaggerUi = require("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
+const bcrypt = require("bcryptjs");
+const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = 3000;
 
 // ==========================================
-// CONFIGURACIÓN DE CONEXIÓN MYSQL
+// MIDDLEWARES
+// ==========================================
+app.use(express.json());
+app.use(cors());
+
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, "../frontenddocumentacion")));
+
+// ==========================================
+// CONEXIÓN MYSQL
 // ==========================================
 const db = mysql.createConnection({
   host: "localhost",
-  user: "root",       // Usuario de MySQL (por defecto en XAMPP)
-  password: "",       // Si tu MySQL no tiene contraseña, deja vacío
+  user: "root",
+  password: "",
   database: "mini_red_social"
 });
 
-// Verificar conexión con MySQL
 db.connect(err => {
   if (err) {
     console.error("❌ Error conectando a MySQL:", err);
     return;
   }
-  console.log("✅ Conectado a la base de datos MySQL");
-});
-
-// Middleware para leer JSON en el body
-app.use(express.json());
-
-// ==========================================
-// CONFIGURAR SWAGGER
-// ==========================================
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Mini Red Social API",
-      version: "1.0.0",
-      description: "Documentación interactiva de la API de la Mini Red Social",
-    },
-    servers: [
-      {
-        url: "http://localhost:3000",
-      },
-    ],
-  },
-  apis: ["./index.js"], // Aquí se buscan los comentarios tipo Swagger
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-// ==========================================
-// RUTA DE PRUEBA
-// ==========================================
-app.get("/", (req, res) => {
-  res.send("Servidor Node funcionando 🚀");
+  console.log("✅ Conectado a MySQL");
 });
 
 // ==========================================
 // ENDPOINTS USUARIOS
 // ==========================================
 
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: Muestra todos los usuarios
- *     description: Devuelve la lista de usuarios registrados (sin contraseñas).
- *     responses:
- *       200:
- *         description: Lista de usuarios obtenida correctamente
- */
+// Obtener todos los usuarios
 app.get("/users", async (req, res) => {
   try {
     const [results] = await db.promise().query("SELECT id, username FROM users");
     res.json(results);
   } catch (err) {
-    console.error(err);
     res.status(500).send("Error al obtener usuarios");
   }
 });
 
-/**
- * @swagger
- * /users:
- *   post:
- *     summary: Crea un nuevo usuario
- *     description: Registra un usuario con contraseña encriptada.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *                 example: emilio
- *               password:
- *                 type: string
- *                 example: 12345678
- *     responses:
- *       200:
- *         description: Usuario creado correctamente
- */
+// Registrar usuario
 app.post("/users", async (req, res) => {
-  let { username, password } = req.body;
-
-  username = username.trim();
-  password = password.trim();
-
-  if (!username || !password) {
-    return res.status(400).send("Faltan datos (username o password)");
-  }
+  const { username, password } = req.body;
+  if (!username || !password)
+    return res.status(400).send("Faltan datos");
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
     await db.promise().query(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, hashedPassword]
+      "INSERT INTO users (username, password) VALUES (?, ?)", 
+      [username.trim(), hashedPassword]
     );
-    res.send("✅ Usuario creado con éxito (contraseña protegida)");
+    res.send("✅ Usuario creado");
   } catch (err) {
-    console.error(err);
     res.status(500).send("Error al crear usuario");
   }
 });
 
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Inicia sesión
- *     description: Valida las credenciales del usuario y devuelve un mensaje de bienvenida.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *                 example: emilio
- *               password:
- *                 type: string
- *                 example: 12345678
- *     responses:
- *       200:
- *         description: Inicio de sesión exitoso
- *       401:
- *         description: Usuario no encontrado o contraseña incorrecta
- */
+// Login
 app.post("/login", async (req, res) => {
-  let { username, password } = req.body;
-
-  username = username.trim();
-  password = password.trim();
+  const { username, password } = req.body;
 
   try {
     const [results] = await db.promise().query(
@@ -169,20 +79,18 @@ app.post("/login", async (req, res) => {
       [username]
     );
 
-    if (results.length === 0) {
-      return res.status(401).send("Usuario no encontrado ❌");
-    }
+    if (results.length === 0)
+      return res.status(401).send("Usuario no encontrado");
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (isMatch) {
-      res.send(`✅ Bienvenido, ${user.username}!`);
+      res.json({ success: true, user_id: user.id, username: user.username });
     } else {
-      res.status(401).send("Contraseña incorrecta ❌");
+      res.status(401).send("Contraseña incorrecta");
     }
   } catch (err) {
-    console.error(err);
     res.status(500).send("Error en el servidor");
   }
 });
@@ -191,74 +99,54 @@ app.post("/login", async (req, res) => {
 // ENDPOINTS POSTS
 // ==========================================
 
-/**
- * @swagger
- * /posts:
- *   get:
- *     summary: Obtiene todos los posts
- *     description: Devuelve una lista con todos los posts de los usuarios.
- *     responses:
- *       200:
- *         description: Lista de posts obtenida correctamente
- */
+// Obtener todos los posts
 app.get("/posts", async (req, res) => {
   try {
-    const [results] = await db.promise().query("SELECT * FROM posts");
+    const [results] = await db.promise().query(`
+      SELECT posts.id, posts.content, users.username
+      FROM posts
+      JOIN users ON posts.user_id = users.id
+      ORDER BY posts.id DESC
+    `);
     res.json(results);
   } catch (err) {
-    console.error(err);
     res.status(500).send("Error al obtener posts");
   }
 });
 
-/**
- * @swagger
- * /posts:
- *   post:
- *     summary: Crea un nuevo post
- *     description: Permite crear un nuevo post vinculado a un usuario.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: integer
- *                 example: 1
- *               content:
- *                 type: string
- *                 example: Este es mi primer post
- *     responses:
- *       200:
- *         description: Post creado correctamente
- */
+// Crear un nuevo post
 app.post("/posts", async (req, res) => {
-  let { user_id, content } = req.body;
-  user_id = user_id.toString().trim();
-  content = content.trim();
-
-  if (!user_id || !content) {
-    return res.status(400).send("Faltan datos para crear el post");
-  }
+  const { user_id, content } = req.body;
+  if (!user_id || !content)
+    return res.status(400).send("Faltan datos");
 
   try {
     await db.promise().query(
       "INSERT INTO posts (user_id, content) VALUES (?, ?)",
-      [user_id, content]
+      [user_id, content.trim()]
     );
-    res.send("📝 Post creado con éxito!");
+    res.send("✅ Post creado con éxito");
   } catch (err) {
-    console.error(err);
     res.status(500).send("Error al crear post");
   }
+});
+
+// ==========================================
+// RUTAS PARA FRONTEND
+// ==========================================
+
+// Login y Posts
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontenddocumentacion/login/login.html"));
+});
+
+app.get("/posts", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontenddocumentacion/posts/posts.html"));
 });
 
 // ==========================================
 // INICIAR SERVIDOR
 // ==========================================
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`📘 Documentación disponible en http://localhost:${PORT}/api-docs`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Red Social - Posts</title>
+<style>
+  body { font-family: 'Poppins', sans-serif; background: #f4f7fc; margin: 0; padding: 0; }
+  header { background-color: #3f72af; color: white; text-align: center; padding: 1rem; }
+  .container { max-width: 600px; margin: 2rem auto; background: white; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 1.5rem; }
+  textarea { width: 100%; border-radius: 0.5rem; border: 1px solid #ccc; padding: 1rem; resize: none; }
+  button { background-color: #3f72af; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-top: 1rem; }
+  button:hover { background-color: #2c5c9c; }
+  .post { background: #f8f9fb; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; border-left: 4px solid #3f72af; }
+  .author { font-weight: bold; color: #3f72af; margin-bottom: 0.3rem; }
+  #logout { float: right; background: #ff4b5c; margin-top: -2rem; }
+  #logout:hover { background: #d94352; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mini Red Social</h1>
+  <button id="logout">Cerrar sesión</button>
+  <p id="welcome"></p>
+</header>
+<div class="container">
+  <h2>Crear un nuevo post</h2>
+  <textarea id="postContent" rows="3" placeholder="¿Qué estás pensando?"></textarea>
+  <button onclick="addPost()">Publicar</button>
+
+  <h2>Publicaciones</h2>
+  <div id="posts"></div>
+</div>
+
+<script>
+const user_id = localStorage.getItem("user_id");
+const username = localStorage.getItem("username");
+document.getElementById("welcome").textContent = "Hola, " + username;
+
+if (!user_id || !username) {
+  alert("Debes iniciar sesión");
+  window.location.href = "login.html";
+}
+
+document.getElementById("logout").addEventListener("click", () => {
+  localStorage.removeItem("user_id");
+  localStorage.removeItem("username");
+  window.location.href = "login.html";
+});
+
+async function loadPosts() {
+  try {
+    const res = await fetch("http://localhost:3000/posts");
+    const data = await res.json();
+    const postsDiv = document.getElementById("posts");
+    postsDiv.innerHTML = "";
+
+    if (!data.length) {
+      postsDiv.innerHTML = "<p>No hay posts aún. Sé el primero en publicar.</p>";
+      return;
+    }
+
+    data.forEach(post => {
+      const div = document.createElement("div");
+      div.classList.add("post");
+      div.innerHTML = `<p class="author">${post.username}</p><p>${post.content}</p>`;
+      postsDiv.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Error cargando posts:", err);
+    alert("No se pudieron cargar los posts. ¿El servidor está corriendo?");
+  }
+}
+
+async function addPost() {
+  const content = document.getElementById("postContent").value.trim();
+  if (!content) return alert("Escribe algo antes de publicar");
+
+  try {
+    await fetch("http://localhost:3000/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, content })
+    });
+    document.getElementById("postContent").value = "";
+    loadPosts();
+  } catch (err) {
+    console.error("Error publicando:", err);
+    alert("No se pudo crear el post");
+  }
+}
+
+// Cargar posts al inicio
+loadPosts();
+</script>
+</body>
+</html>
