@@ -44,7 +44,7 @@ Desarrollar una aplicación sencilla que permita:
 
 ## Tecnologías 
 
-* **Base de datos:** MySQL / PostgreSQL / MongoDB
+* **Base de datos:** MySQL / PostgreSQL / PHP
 * **Backend:** Node.js / Python 
 * **Frontend:** React / HTML-CSS-JS 
 
